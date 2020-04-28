@@ -9,7 +9,7 @@ Use to endlessly thrash a machine by consuming disk space.
 - Inputs are to `dd` binary, see [man page](https://linux.die.net/man/1/dd) for further explanations
 
 Variable | Default | Description
---- | --- | --- | ---
+--- | --- | ---
 BLOCKS | 1000000 | copies BLOCKS inputs (maps to `dd` count variable)
 BYTES | 128M | write BYTES bytes at a time
 WAIT_TIME | 1 | seconds between writes

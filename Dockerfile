@@ -1,4 +1,4 @@
-FROM alpine:3
+FROM alpine:3.15
 
 ENV BLOCKS=1000000
 ENV BYTES="128M"

@@ -1,5 +1,6 @@
 # docker-data-eater
 
+TEST
 ## DO NOT USE IN PRODUCTION
 
 Use to endlessly thrash a machine by consuming disk space.

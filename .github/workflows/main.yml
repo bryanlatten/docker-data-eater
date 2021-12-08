@@ -48,8 +48,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ steps.meta.outputs.tags }}-alpine
+          tags: ${{ steps.meta.outputs.tags }}
       -
         name: Build + push - Ubuntu
         uses: docker/build-push-action@v2
@@ -58,5 +57,4 @@ jobs:
           file: ./Dockerfile-ubuntu
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ steps.meta.outputs.tags }}-ubuntu
+          tags: ${{ steps.meta.outputs.tags }}

@@ -8,8 +8,15 @@ on:
     branches: [ master ]
 
 jobs:
-  main:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        props:
+        - Dockerfile: Dockerfile
+          suffix: alpine
+        - Dockerfile: Dockerfile-ubuntu
+          suffix: ubuntu
     steps:
       -
         name: Checkout
@@ -17,6 +24,7 @@ jobs:
       -
         name: Docker meta
         id: meta
+        if: github.event_name != 'pull_request'
         uses: docker/metadata-action@v3
         with:
           # list of Docker images to use as base name for tags
@@ -34,6 +42,18 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       -
+        name: finalize docker tags and suffixes
+        if: github.event_name != 'pull_request'
+        run: |
+          res=$(
+            node --eval="
+            const tags = '${{ steps.meta.outputs.tags }}'.trim();
+            const suffix = '${{ matrix.props.suffix }}'.trim();
+            const append = (suffix.length) ? '-' + suffix : '';
+            console.log(tags.split(',').map((i) => i  + append).join(','));
+          ")
+          echo "DOCKER_TAGS=$res" >> $GITHUB_ENV
+      -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v1
@@ -41,22 +61,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build + push - Alpine
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: "${{ steps.meta.outputs.tags }}-alpine"
-          labels: "${{ steps.meta.outputs.labels }}-alpine"
+        name: output
+        run: echo [MATRIX] ${{ matrix.props.Dockerfile }} tags ${{ env.DOCKER_TAGS }}
       -
-        name: Build + push - Ubuntu
+        name: Build + push
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile-ubuntu
           platforms: linux/amd64,linux/arm64
+          file: ${{ matrix.props.Dockerfile }}
+          tags: ${{ DOCKER_TAGS }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: "${{ steps.meta.outputs.tags }}-ubuntu"
-          labels: "${{ steps.meta.outputs.labels }}-ubuntu"

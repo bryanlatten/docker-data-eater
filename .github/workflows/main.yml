@@ -14,13 +14,21 @@ jobs:
       matrix:
         props:
         - Dockerfile: Dockerfile
-          suffix: alpine
+          # suffix: alpine
         - Dockerfile: Dockerfile-ubuntu
           suffix: ubuntu
     steps:
+      # -
+      #   name: Checkout
+      #   uses: actions/checkout@v2
       -
-        name: Checkout
-        uses: actions/checkout@v2
+        name: Add tag suffix
+        if: matrix.props.suffix
+        run: |
+          echo TAG_SUFFIX="-${{ matrix.props.suffix }}" >> $GITHUB_ENV
+      -
+        name: output
+        run: echo $TAG_SUFFIX
       -
         name: Docker meta
         id: meta
@@ -28,31 +36,22 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           # list of Docker images to use as base name for tags
+          # NOTE: this org/repository matches the Docker registry paths
           images: |
-            bryanlatten/docker-data-eater
-          # generate Docker tags based on the following events/attributes
+            ${{ env.GITHUB_REPOSITORY }}
           tags: |
-            type=semver,pattern={{major}}.{{minor}}.{{patch}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}{{ env.TAG_SUFFIX }}
+            type=semver,pattern={{major}}.{{minor}}{{ env.TAG_SUFFIX }}
+            type=semver,pattern={{major}}{{ env.TAG_SUFFIX }}
+
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
+
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      -
-        name: finalize docker tags and suffixes
-        if: github.event_name != 'pull_request'
-        run: |
-          res=$(
-            node --eval="
-            const tags = '${{ steps.meta.outputs.tags }}'.trim();
-            const suffix = '${{ matrix.props.suffix }}'.trim();
-            const append = (suffix.length) ? '-' + suffix : '';
-            console.log(tags.split(',').map((i) => i  + append).join(','));
-          ")
-          echo "DOCKER_TAGS=$res" >> $GITHUB_ENV
+
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -60,9 +59,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: output
-        run: echo [MATRIX] ${{ matrix.props.Dockerfile }} tags ${{ env.DOCKER_TAGS }}
+
       -
         name: Build + push
         uses: docker/build-push-action@v2
@@ -70,5 +67,5 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           file: ${{ matrix.props.Dockerfile }}
-          tags: ${{ DOCKER_TAGS }}
+          tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}

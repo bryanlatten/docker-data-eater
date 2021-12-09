@@ -70,5 +70,5 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           file: ${{ matrix.props.Dockerfile }}
-          tags: ${{ DOCKER_TAGS }}
+          tags: ${{ env.DOCKER_TAGS }}
           push: ${{ github.event_name != 'pull_request' }}

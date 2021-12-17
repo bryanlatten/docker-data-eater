@@ -17,8 +17,10 @@ jobs:
         props:
         - Dockerfile: Dockerfile
           suffix: alpine
+          version: 20
         - Dockerfile: Dockerfile-ubuntu
           suffix: ubuntu
+          version: 30
     steps:
       -
         name: Checkout
@@ -36,9 +38,10 @@ jobs:
         with:
           images: ${{ env.IMAGE_BASE }}
           tags: |
-            type=semver,pattern={{major}}.{{minor}}.{{patch}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,prefix==${{ matrix.props.version }},pattern={{major}}.{{minor}}.{{patch}}
+            type=semver,prefix==${{ matrix.props.version }},pattern={{major}}.{{minor}}
+            type=semver,prefix==${{ matrix.props.version }},pattern={{major}}
+            type=raw,value=${{ matrix.props.version }}
           flavor: |
             latest=false
             suffix=${{ env.TAG_SUFFIX }}

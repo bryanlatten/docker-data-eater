@@ -38,9 +38,9 @@ jobs:
         with:
           images: ${{ env.IMAGE_BASE }}
           tags: |
-            type=semver,prefix=${{ matrix.props.version }},pattern={{major}}.{{minor}}.{{patch}}
-            type=semver,prefix=${{ matrix.props.version }},pattern={{major}}.{{minor}}
-            type=semver,prefix=${{ matrix.props.version }},pattern={{major}}
+            type=semver,prefix=${{ matrix.props.version }}-,pattern={{major}}.{{minor}}.{{patch}}
+            type=semver,prefix=${{ matrix.props.version }}-,pattern={{major}}.{{minor}}
+            type=semver,prefix=${{ matrix.props.version }}-,pattern={{major}}
             type=raw,value=${{ matrix.props.version }}
           flavor: |
             latest=false
